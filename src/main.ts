@@ -12,6 +12,7 @@ async function bootstrap() {
     .setDescription('For appointments purpose')
     .setVersion('1.0')
     .addTag('Appointments')
+    .addBearerAuth()
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, documentFactory);
