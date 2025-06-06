@@ -14,6 +14,8 @@ import { Server, Socket } from 'socket.io';
 import { AppointmentService } from './appointment.service';
 import { forwardRef, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { User } from 'src/users/entities/user.entity';
+import { Appointment } from './entities/appointment.entity';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class AppointmentsGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -105,5 +107,50 @@ export class AppointmentsGateway implements OnGatewayConnection, OnGatewayDiscon
   broadcastLockAdded(appointmentId: string, lockAcquired: any): void {
     console.log('Broadcasting lock added for appointment:', appointmentId, 'by user:', lockAcquired.userInfo);
     this.server.emit('lock-added', { appointmentId, lockAcquired });
+  }
+
+  sendRequestControlUpdate(appointment: Appointment, fromUser: User, toUser: User): void {
+    this.connectedUsers.forEach((user) => {
+      if (user.userId === toUser.id) {
+        this.server.to(user.socketId).emit('request-control', {
+          appointment: {
+            id: appointment.id,
+            title: appointment.title,
+            patientName: appointment.patientName,
+            datebirth: appointment.datebirth,
+            startTime: appointment.startTime,
+          },
+          fromUser: {
+            id: fromUser.id,
+            name: fromUser.name,
+            email: fromUser.email,
+          },
+          expiresAt: appointment.appointmentLock.expiresAt,
+        });
+        return
+      }
+    });
+  }
+
+  sendRequestControlApproved(appointment: Appointment, fromUser: User, toUser: User): void {
+    this.connectedUsers.forEach((user) => {
+      if (user.userId === toUser.id) {
+        this.server.to(user.socketId).emit('request-control-approved', {
+          appointment: {
+            id: appointment.id,
+            title: appointment.title,
+            patientName: appointment.patientName,
+            datebirth: appointment.datebirth,
+            startTime: appointment.startTime,
+          },
+          fromUser: {
+            id: fromUser.id,
+            name: fromUser.name,
+            email: fromUser.email,
+          }
+        });
+        return
+      }
+    });
   }
 }

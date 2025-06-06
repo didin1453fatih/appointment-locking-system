@@ -35,7 +35,7 @@ export class AppointmentService {
   async findOne(id: string): Promise<Appointment> {
     const appointment = await this.appointmentRepository.findOne({
       where: { id },
-      relations: ['appointmentLock', 'appointmentLock.user']
+      relations: ['appointmentLock', 'appointmentLock.user', 'appointmentLock.requestControlByUser']
     });
 
     if (!appointment) {
@@ -211,6 +211,100 @@ export class AppointmentService {
     lock.expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
 
     await this.lockRepository.save(lock);
+  }
+
+  async requestControl(appointmentId: string, userId: string): Promise<AppointmentLock> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+
+      // Check if the user already has a lock
+      const existingLock = await this.lockRepository.findOne({
+        where: { appointmentId }
+      });
+
+      console.log('Existing lock:', existingLock);
+
+      if (!existingLock) {
+        throw new NotFoundException(`No lock found for appointment with ID ${appointmentId}`);
+      }
+
+      if (existingLock.userId === userId) {
+        throw new ConflictException('You already have a lock on this appointment');
+      }
+
+      if (existingLock.requestControlByUserId === userId) {
+        throw new ConflictException('You already requested control for this appointment');
+      }
+
+      // Check if there's an existing lock by another user
+      if (existingLock.requestControlByUserId && existingLock.requestControlByUserId !== userId) {
+        throw new ConflictException(`This appointment is requested for control by another user`);
+      }
+
+      existingLock.requestControlByUserId = userId;
+      const savedLock = await this.lockRepository.save(existingLock);
+      await queryRunner.commitTransaction();
+      return savedLock;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async approveRequestControl(appointmentId: string, lockedByUserId: string): Promise<{ requestControlByUserId: string, lockedByUserId: string }> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Check if the appointment exists
+      const appointment = await this.appointmentRepository.findOne({
+        where: { id: appointmentId },
+        relations: ['appointmentLock']
+      });
+
+      if (!appointment) {
+        throw new NotFoundException(`Appointment with ID ${appointmentId} not found`);
+      }
+
+      const lock = appointment.appointmentLock;
+
+      if (!lock) {
+        throw new NotFoundException(`No lock found for appointment with ID ${appointmentId}`);
+      }
+
+      if (!lock.requestControlByUserId) {
+        throw new ConflictException('No request for control found for this appointment');
+      }
+
+      if (lock.userId !== lockedByUserId) {
+        throw new UnauthorizedException('You are not the owner of this lock');
+      }
+
+      const requestControlByUserId = lock.requestControlByUserId;
+
+      // Approve the request by setting the userId to the requestControlByUserId
+      lock.userId = lock.requestControlByUserId;
+      lock.requestControlByUserId = null; // Clear the request control user
+
+      const updatedLock = await this.lockRepository.save(lock);
+      await queryRunner.commitTransaction();
+
+      return {
+        requestControlByUserId: requestControlByUserId,
+        lockedByUserId: updatedLock.userId
+      };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   @Cron('*/10 * * * * *') // Run every 3 seconds

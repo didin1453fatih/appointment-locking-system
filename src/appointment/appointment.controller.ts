@@ -16,6 +16,8 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AppointmentsGateway } from './appointment.gateway';
+import { UserService } from 'src/users/user.service';
+import { User } from 'src/users/entities/user.entity';
 
 @Controller('appointments')
 @UseGuards(AuthGuard)
@@ -24,7 +26,7 @@ export class AppointmentController {
     constructor(
         private readonly appointmentService: AppointmentService,
         private readonly appointmentGateway: AppointmentsGateway,
-
+        private readonly userService: UserService
     ) { }
 
     @Post()
@@ -88,5 +90,33 @@ export class AppointmentController {
         }
 
         return this.appointmentService.forceReleaseLock(id, req.user.id);
+    }
+
+    @Post(':id/request-control')
+    async requestControl(@Param('id') id: string, @Request() req) {
+        if (!req.user.isAdmin) {
+            throw new ForbiddenException('Only admins can request control');
+        }
+
+        await this.appointmentService.requestControl(id, req.user.id);
+        const appointment = await this.appointmentService.findOne(id);
+        const appointmentLock = appointment.appointmentLock;
+        this.appointmentGateway.sendRequestControlUpdate(appointment, appointmentLock.requestControlByUser, appointmentLock.user);
+        return appointment;
+    }
+
+    @Post(':id/approve-request-control')
+    async approveRequestControl(@Param('id') id: string, @Request() req) {
+        const { requestControlByUserId, lockedByUserId } = await this.appointmentService.approveRequestControl(id, req.user.id);
+        const requestControlByUser = await this.userService.findOne(requestControlByUserId);
+        const lockedByUser = await this.userService.findOne(lockedByUserId);
+        const appointment = await this.appointmentService.findOne(id);
+        this.appointmentGateway.broadcastUpdateAppointment(appointment);
+        this.appointmentGateway.sendRequestControlApproved(
+            appointment,
+            lockedByUser as User,
+            requestControlByUser as User,
+        )
+        return appointment;
     }
 }
