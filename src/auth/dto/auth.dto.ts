@@ -6,7 +6,7 @@ export class AuthDto {
     @IsNotEmpty()
     @ApiProperty({
         type: String,
-        example: 'user@example.com',
+        example: 'budi@example.com',
     })
     email: string;
 
