@@ -153,4 +153,48 @@ export class AppointmentsGateway implements OnGatewayConnection, OnGatewayDiscon
       }
     });
   }
+
+  sendForceReleaseLockRequest(appointment: Appointment, fromUser: User, toUser: User): void {
+    this.connectedUsers.forEach((user) => {
+      if (user.userId === toUser.id) {
+        this.server.to(user.socketId).emit('force-release-lock-request', {
+          appointment: {
+            id: appointment.id,
+            title: appointment.title,
+            patientName: appointment.patientName,
+            datebirth: appointment.datebirth,
+            startTime: appointment.startTime,
+          },
+          fromUser: {
+            id: fromUser.id,
+            name: fromUser.name,
+            email: fromUser.email,
+          }
+        });
+        return
+      }
+    });
+  }
+
+  sendForceReleaseLockApproved(appointment: Appointment, fromUser: User, toUser: User): void {
+    this.connectedUsers.forEach((user) => {
+      if (user.userId === toUser.id) {
+        this.server.to(user.socketId).emit('force-release-lock-approved', {
+          appointment: {
+            id: appointment.id,
+            title: appointment.title,
+            patientName: appointment.patientName,
+            datebirth: appointment.datebirth,
+            startTime: appointment.startTime,
+          },
+          fromUser: {
+            id: fromUser.id,
+            name: fromUser.name,
+            email: fromUser.email,
+          }
+        });
+        return
+      }
+    });
+  }
 }

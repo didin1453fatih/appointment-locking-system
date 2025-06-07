@@ -83,13 +83,33 @@ export class AppointmentController {
         return appointment;
     }
 
-    @Post(':id/force-release-lock')
-    async forceReleaseLock(@Param('id') id: string, @Request() req) {
+    @Post(':id/force-release-lock-request')
+    async forceReleaseLockRequest(@Param('id') id: string, @Request() req) {
         if (!req.user.isAdmin) {
             throw new ForbiddenException('Only admins can force release locks');
         }
+    
+        await this.appointmentService.forceReleaseLockRequest(id, req.user.id);
+        const appointment = await this.appointmentService.findOne(id);
+        const appointmentLock = appointment.appointmentLock;
+        this.appointmentGateway.sendForceReleaseLockRequest(appointment, appointmentLock.requestForceReleaseByUser, appointmentLock.user);
+        return appointment;
+    }
 
-        return this.appointmentService.forceReleaseLock(id, req.user.id);
+    @Post(':id/force-release-lock-approve')
+    async forceReleaseLockApprove(@Param('id') id: string, @Request() req) {
+        const appointment = await this.appointmentService.findOne(id);
+        const requestForceReleaseByUser = appointment.appointmentLock.requestForceReleaseByUser;
+        const lockedByUser= appointment.appointmentLock.user;
+        await this.appointmentService.releaseLock(id, req.user.id);
+        const newAppointment = await this.appointmentService.findOne(id);
+        this.appointmentGateway.broadcastUpdateAppointment(newAppointment);
+        this.appointmentGateway.sendForceReleaseLockApproved(
+            appointment,
+            lockedByUser as User,
+            requestForceReleaseByUser as User,
+        );
+        return newAppointment;
     }
 
     @Post(':id/request-control')

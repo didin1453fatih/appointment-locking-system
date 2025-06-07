@@ -35,7 +35,12 @@ export class AppointmentService {
   async findOne(id: string): Promise<Appointment> {
     const appointment = await this.appointmentRepository.findOne({
       where: { id },
-      relations: ['appointmentLock', 'appointmentLock.user', 'appointmentLock.requestControlByUser']
+      relations: [
+        'appointmentLock',
+        'appointmentLock.user',
+        'appointmentLock.requestControlByUser',
+        'appointmentLock.requestForceReleaseByUser'
+      ]
     });
 
     if (!appointment) {
@@ -187,10 +192,35 @@ export class AppointmentService {
     await this.lockRepository.delete(lock.id);
   }
 
-  async forceReleaseLock(appointmentId: string, adminId: string): Promise<void> {
-    // Here we should check if the user is an admin (for simplicity, we assume this check happens before this function)
-    // await this.releaseLock(appointmentId, adminId, true);
+
+
+  async forceReleaseLockRequest(appointmentId: string, requestByUserId: string): Promise<void> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const lock = await this.lockRepository.findOne({
+        where: { appointmentId }
+      });
+
+      if (!lock) {
+        throw new NotFoundException(`No lock found for appointment with ID ${appointmentId}`);
+      }
+
+      lock.requestForceReleaseByUserId = requestByUserId;
+      await this.lockRepository.save(lock);
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
+
+
 
   async updateCursorPosition(appointmentId: string, userId: string, position: { x: number, y: number }): Promise<void> {
     const lock = await this.lockRepository.findOne({
