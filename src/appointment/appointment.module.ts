@@ -7,6 +7,7 @@ import { Appointment } from './entities/appointment.entity';
 import { AppointmentLock } from './entities/appointment-lock.entity';
 import { AppointmentsGateway } from './appointment.gateway';
 import { UserModule } from '../users/user.module';
+import { RateLimiterService } from 'src/shared-service/rate-limiter.service';
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { UserModule } from '../users/user.module';
     providers: [
         AppointmentsGateway,
         AppointmentService,
+        RateLimiterService
     ],
     exports: [AppointmentService]
 })

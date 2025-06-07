@@ -18,16 +18,26 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { AppointmentsGateway } from './appointment.gateway';
 import { UserService } from 'src/users/user.service';
 import { User } from 'src/users/entities/user.entity';
+import { RateLimiterService } from 'src/shared-service/rate-limiter.service';
+
+interface RateLimitRecord {
+    count: number;
+    resetTime: number;
+}
 
 @Controller('appointments')
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
 export class AppointmentController {
+
+    private readonly store = new Map<string, RateLimitRecord>();
+
     constructor(
+        private readonly rateLimiterService: RateLimiterService,
         private readonly appointmentService: AppointmentService,
         private readonly appointmentGateway: AppointmentsGateway,
         private readonly userService: UserService
-    ) { }
+    ) {}
 
     @Post()
     async create(@Body() createAppointmentDto: CreateAppointmentDto, @Request() req) {
@@ -65,6 +75,8 @@ export class AppointmentController {
 
     @Post(':id/acquire-lock/:version')
     async acquireLock(@Param('id') id: string, @Param('version',) version: string, @Request() req) {
+        // Use the injected service to check rate limits
+        this.rateLimiterService.checkRateLimit(req.user.id);
         const userInfo = {
             name: req.user.name,
             email: req.user.email
