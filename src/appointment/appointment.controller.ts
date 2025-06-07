@@ -63,13 +63,19 @@ export class AppointmentController {
         return this.appointmentService.getLockStatus(id);
     }
 
-    @Post(':id/acquire-lock')
-    async acquireLock(@Param('id') id: string, @Request() req) {
+    @Post(':id/acquire-lock/:version')
+    async acquireLock(@Param('id') id: string, @Param('version',) version: string, @Request() req) {
         const userInfo = {
             name: req.user.name,
             email: req.user.email
         };
-        const lockAcquired = await this.appointmentService.acquireLock(id, req.user.id, userInfo);
+        let versionNumber = -1
+        try {
+            versionNumber = parseInt(version, 10);
+        } catch (error) {
+            throw new ForbiddenException('Invalid version number');
+        }
+        const lockAcquired = await this.appointmentService.acquireLock(id, req.user.id, userInfo, versionNumber);
         const appointment = await this.appointmentService.findOne(id);
         this.appointmentGateway.broadcastUpdateAppointment(appointment);
         return lockAcquired;
@@ -88,7 +94,7 @@ export class AppointmentController {
         if (!req.user.isAdmin) {
             throw new ForbiddenException('Only admins can force release locks');
         }
-    
+
         await this.appointmentService.forceReleaseLockRequest(id, req.user.id);
         const appointment = await this.appointmentService.findOne(id);
         const appointmentLock = appointment.appointmentLock;
@@ -100,7 +106,7 @@ export class AppointmentController {
     async forceReleaseLockApprove(@Param('id') id: string, @Request() req) {
         const appointment = await this.appointmentService.findOne(id);
         const requestForceReleaseByUser = appointment.appointmentLock.requestForceReleaseByUser;
-        const lockedByUser= appointment.appointmentLock.user;
+        const lockedByUser = appointment.appointmentLock.user;
         await this.appointmentService.releaseLock(id, req.user.id);
         const newAppointment = await this.appointmentService.findOne(id);
         this.appointmentGateway.broadcastUpdateAppointment(newAppointment);

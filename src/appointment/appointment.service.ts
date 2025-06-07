@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, UnauthorizedException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, Inject, forwardRef, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, MoreThan, LessThan } from 'typeorm';
 import { Appointment } from './entities/appointment.entity';
@@ -62,13 +62,13 @@ export class AppointmentService {
       });
 
       if (!lock) {
-        throw new UnauthorizedException('You do not have a lock on this appointment');
+        throw new BadRequestException('You do not have a lock on this appointment');
       }
 
       // Check if lock is expired
       if (new Date() > lock.expiresAt) {
         await this.releaseLock(id, userId);
-        throw new UnauthorizedException('Your lock has expired. Please acquire a new lock.');
+        throw new BadRequestException('Your lock has expired. Please acquire a new lock.');
       }
 
       // Get appointment with version for optimistic locking
@@ -122,7 +122,7 @@ export class AppointmentService {
     return appointment.appointmentLock || null;
   }
 
-  async acquireLock(appointmentId: string, userId: string, userInfo: any): Promise<AppointmentLock> {
+  async acquireLock(appointmentId: string, userId: string, userInfo: any, version: number): Promise<AppointmentLock> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -136,6 +136,10 @@ export class AppointmentService {
 
       if (!appointment) {
         throw new NotFoundException(`Appointment with ID ${appointmentId} not found`);
+      }
+      // Check version for optimistic locking
+      if (appointment.version !== version) {
+        throw new ConflictException('This appointment has been modified by another user. Please refresh and try again.');
       }
 
       // Check if it's already locked
@@ -186,7 +190,7 @@ export class AppointmentService {
     });
 
     if (!lock) {
-      throw new UnauthorizedException('You do not have a lock on this appointment');
+      throw new BadRequestException('You do not have a lock on this appointment');
     }
 
     await this.lockRepository.delete(lock.id);
@@ -228,7 +232,7 @@ export class AppointmentService {
     });
 
     if (!lock) {
-      throw new UnauthorizedException('You do not have a lock on this appointment');
+      throw new BadRequestException('You do not have a lock on this appointment');
     }
 
     // Update cursor position in userInfo
@@ -313,7 +317,7 @@ export class AppointmentService {
       }
 
       if (lock.userId !== lockedByUserId) {
-        throw new UnauthorizedException('You are not the owner of this lock');
+        throw new BadRequestException('You are not the owner of this lock');
       }
 
       const requestControlByUserId = lock.requestControlByUserId;
@@ -337,12 +341,8 @@ export class AppointmentService {
     }
   }
 
-  @Cron('*/10 * * * * *') // Run every 3 seconds
+  @Cron('*/10 * * * * *') // Run every 10 seconds
   async removeExpiredLocks() {
-    // const now = new Date();
-    // await this.lockRepository.delete({
-    //   expiresAt: LessThan(now)
-    // });
     const expiredLocks = await this.lockRepository.find({
       where: {
         expiresAt: LessThan(new Date())
@@ -350,10 +350,8 @@ export class AppointmentService {
     });
     for (const lock of expiredLocks) {
       await this.lockRepository.remove(lock);
-      // this.appointmentGateway.broadcastLockRemoved(lock.appointmentId);
       const appointment = await this.findOne(lock.appointmentId);
       this.appointmentGateway.broadcastUpdateAppointment(appointment);
-      console.log(`Removing expired lock for appointment ${lock.appointmentId} by user ${lock.userId}`);
     }
   }
 }
