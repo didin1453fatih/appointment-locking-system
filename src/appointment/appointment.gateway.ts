@@ -92,6 +92,11 @@ export class AppointmentsGateway implements OnGatewayConnection, OnGatewayDiscon
     this.server.emit('message', "message received:asdfasdfsd " + message);
   }
 
+  @SubscribeMessage('cursor-position')
+  handleCursorPosition(@MessageBody() data: { userId: string, position: { x: number, y: number } }): void {
+    this.server.emit('cursor-position', data);
+  }
+
   broadcastUpdateAppointment(appointment: any): void {
     console.log('Broadcasting new appointment:', appointment);
     const appointmentToSend = {
