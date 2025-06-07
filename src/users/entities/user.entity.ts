@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index } from 'typeorm';
+import { AppointmentLock } from 'src/appointment/entities/appointment-lock.entity';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index, OneToMany } from 'typeorm';
 
 @Index(
     'user_email_unique',
@@ -24,4 +25,13 @@ export class User {
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @OneToMany(() => AppointmentLock, appointmentLock => appointmentLock.requestForceReleaseByUser)
+    requestForceRelease: AppointmentLock[];
+
+    @OneToMany(() => AppointmentLock, appointmentLock => appointmentLock.requestControlByUser)
+    requestControlAppointmentLocks: AppointmentLock[];
+
+    @OneToMany(() => AppointmentLock, appointmentLock => appointmentLock.user)
+    appointmentLocks: AppointmentLock[];    
 }

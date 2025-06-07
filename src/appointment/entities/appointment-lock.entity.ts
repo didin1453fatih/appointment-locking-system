@@ -3,15 +3,22 @@ import { Appointment } from './appointment.entity';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('appointment_locks')
-@Index('appointment_lock_unique', ['appointmentId', 'userId'], { unique: true })
+@Index('appointment_lock_request_control_unique', ['requestControlByUserId', 'appointmentId'], { unique: true })
+@Index('appointment_lock_request_force_release_unique', ['requestForceReleaseByUserId', 'appointmentId'], { unique: true })
 export class AppointmentLock {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({
+    type: 'uuid',
+    unique: true
+  })
   appointmentId: string;
 
-  @Column()
+  @Column({
+    type: 'uuid',
+    nullable: false
+  })
   userId: string;
 
   @Column({ nullable: true, type: 'json' })
@@ -21,11 +28,34 @@ export class AppointmentLock {
     position?: { x: number; y: number }; // For cursor position (bonus)
   };
 
+
+  @Column({
+    type: 'uuid',
+    nullable: true
+  })
+  requestControlByUserId: string | null;
+
+
+  @Column({
+    type: 'uuid',
+    nullable: true
+  })
+  requestForceReleaseByUserId: string | null;
+
   @Column()
   expiresAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;
+
+
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'requestForceReleaseByUserId' })
+  requestForceReleaseByUser: User;
+
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'requestControlByUserId' })
+  requestControlByUser: User;
 
   @OneToOne(() => Appointment, appointment => appointment.appointmentLock)
   @JoinColumn({ name: 'appointmentId' })
