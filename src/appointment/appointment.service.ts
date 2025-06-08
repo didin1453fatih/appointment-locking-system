@@ -267,10 +267,6 @@ export class AppointmentService {
         throw new ConflictException('You already have a lock on this appointment');
       }
 
-      if (existingLock.requestControlByUserId === userId) {
-        throw new ConflictException('You already requested control for this appointment');
-      }
-
       // Check if there's an existing lock by another user
       if (existingLock.requestControlByUserId && existingLock.requestControlByUserId !== userId) {
         throw new ConflictException(`This appointment is requested for control by another user`);

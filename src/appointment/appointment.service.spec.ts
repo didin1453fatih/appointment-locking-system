@@ -276,19 +276,6 @@ describe('AppointmentService', () => {
                 .rejects.toThrow(ConflictException);
         });
 
-        it('should throw ConflictException when user has already requested control', async () => {
-            const existingLock = {
-                appointmentId,
-                userId: currentLockUserId,
-                requestControlByUserId: userId // Already requested by this user
-            };
-
-            jest.spyOn(lockRepository, 'findOne').mockResolvedValue(existingLock as any);
-
-            await expect(service.requestControl(appointmentId, userId))
-                .rejects.toThrow(ConflictException);
-        });
-
         it('should throw ConflictException when another user has already requested control', async () => {
             const existingLock = {
                 appointmentId,

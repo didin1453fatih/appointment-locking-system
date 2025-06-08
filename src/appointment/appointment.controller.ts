@@ -37,7 +37,7 @@ export class AppointmentController {
         private readonly appointmentService: AppointmentService,
         private readonly appointmentGateway: AppointmentsGateway,
         private readonly userService: UserService
-    ) {}
+    ) { }
 
     @Post()
     async create(@Body() createAppointmentDto: CreateAppointmentDto, @Request() req) {
@@ -117,6 +117,9 @@ export class AppointmentController {
     @Post(':id/force-release-lock-approve')
     async forceReleaseLockApprove(@Param('id') id: string, @Request() req) {
         const appointment = await this.appointmentService.findOne(id);
+        if (!appointment.appointmentLock || !appointment.appointmentLock.requestForceReleaseByUser) {
+            throw new ForbiddenException('No force release request found for this appointment');
+        }
         const requestForceReleaseByUser = appointment.appointmentLock.requestForceReleaseByUser;
         const lockedByUser = appointment.appointmentLock.user;
         await this.appointmentService.releaseLock(id, req.user.id);
