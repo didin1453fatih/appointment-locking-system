@@ -1,15 +1,50 @@
 # Appointment Locking System
 
-## The System
+# The System
 
 ![Appointment UI](./appointment-ui.png)
 
 This system appointment locking system build with sperate backend and frontend. Backend build with NestJS and Frontend build with ReactJS with NextJS. For running the system locally, you need to run both backend and frontend servers. In below section, I will explain how to run the system locally.
 
-## The Frontend
+# Important Workflows
+
+## Realtime appointment data synchronization
+1. **Web Socket Connection**: The frontend establishes a WebSocket connection to the backend using Socket.io.
+2. **Send Initial Data From Server when Connection Created**: When the WebSocket connection is established, the backend sends the initial appointment data to the frontend.
+3. **Listen for Updates**: The frontend listens for updates topics at hook `use-appointment-socket.ts` in Next.js such as:
+- `init-appointments`: This topic is used to send the initial appointment data when the WebSocket connection is established.
+- `update-appointments`: This topic is used to send the frontend when an appointment is updated.
+- `request-control`: This topic is used to notify the owner of the lock when a admin requests control of an appointment lock.
+- `request-control-approved`: This topic is used to notify the user who requested control of the lock when their request is approved.
+- `force-release-lock-request`: This topic is used to notify the owner of the lock when a admin requests force release of an appointment lock.
+- `force-release-lock-approved`: This topic is used to notify the user who requested force release of the lock when their request is approved.
+4. **Update UI**: When the frontend receives an update, it updates the UI accordingly, ensuring that the user sees the most current appointment data.
+
+
+## **Request Control Workflow**:
+1. **User Requests Control**: A user requests control of an appointment lock by calling the API endpoint `POST /appointment/:id/request-control`.
+2. **Check Only Admin Can Request Control**: The system checks if the user is an admin. If not, it returns an error.
+3. **Check Lock Exists**: The system checks if a lock exists for the appointment. If not, it returns an error.
+4. **Send To Owner Of Lock**: The system sends a request to the owner of the lock, asking them to release the lock via web socket. This websocket message send to the client with topic `request-control` this placed at file `use-appointment-socket.ts` in NextJS frontend.
+5. **Owner Accepts or Rejects**: The owner of the lock can accept or reject the request.
+6. **If Accepted**: If the owner accepts the request, it will hit the API endpoint `POST /appointment/:id/approve-request-control` to approve the request. The system will then update the lock to indicate that the user has control.
+7. **Send Notification**: The system sends a notification to the user who requested control, indicating that they have been granted control of the lock. It sends a websocket message with topic `request-control-approved` to the client.
+
+## **Force Release Workflow**:
+1. **User Requests Force Release**: A user requests a force release of an appointment lock by calling the API endpoint `POST /appointment/:id/force-release-lock-request`.
+2. **Check Only Admin Can Request Force Release**: The system checks if the user is an admin. If not, it returns an error.
+3. **Check Lock Exists**: The system checks if a lock exists for the appointment. If not, it returns an error.
+4. **Send To Owner Of Lock**: The system sends a request to the owner of the lock, asking them to release the lock via web socket. This websocket message send to the client with topic `force-release-lock-request` this placed at file `use-appointment-socket.ts` in NextJS frontend.
+5. **Owner Accepts or Rejects**: The owner of the lock can accept or reject the request.
+6. **If Accepted**: If the owner accepts the request, it will hit the API endpoint `POST /appointment/:id/force-release-lock-approve` to approve the request. The system will then release the lock.
+7. **Send Notification**: The system sends a notification to the user who requested force release, indicating that the lock has been released. It sends a websocket message with topic `force-release-lock-approved` to the client.
+
+
+
+# The Frontend
 For Comperhensive frontend documentation, please refer to the https://github.com/didin1453fatih/appointment-locking-system-fe
 
-## The Backend
+# The Backend
 
 I used NestJS for the backend framework. Why i choost nestJS compared with expressJS ? Because i need speed up development below one week. ExpressJS minimalist, but this need many of configuration compared with NestJS. With NestJS there are many helper and decoration for speed up pre development config. When I develop app, there are required tools for my perfectionist mindset:
 
@@ -40,40 +75,6 @@ I add capability in this backend for development will be easy and fast. I add fe
 - **DTO Validation**: I use class-validator to validate incoming requests and ensure that the data is in the correct format before processing it. This helps prevent errors and ensures data integrity. Example at `create-appointment.dto.ts`.
 - **TypeORM for Sanitize Query**: I use TypeORM to sanitize queries and prevent SQL injection attacks. 
 
-
-## Realtime appointment data synchronization
-1. **Web Socket Connection**: The frontend establishes a WebSocket connection to the backend using Socket.io.
-2. **Send Initial Data From Server when Connection Created**: When the WebSocket connection is established, the backend sends the initial appointment data to the frontend.
-3. **Listen for Updates**: The frontend listens for updates topics at hook `use-appointment-socket.ts` in Next.js such as:
-- `init-appointments`: This topic is used to send the initial appointment data when the WebSocket connection is established.
-- `update-appointments`: This topic is used to send the frontend when an appointment is updated.
-- `request-control`: This topic is used to notify the owner of the lock when a admin requests control of an appointment lock.
-- `request-control-approved`: This topic is used to notify the user who requested control of the lock when their request is approved.
-- `force-release-lock-request`: This topic is used to notify the owner of the lock when a admin requests force release of an appointment lock.
-- `force-release-lock-approved`: This topic is used to notify the user who requested force release of the lock when their request is approved.
-4. **Update UI**: When the frontend receives an update, it updates the UI accordingly, ensuring that the user sees the most current appointment data.
-
-
-
-## **Request Control Workflow**:
-
-1. **User Requests Control**: A user requests control of an appointment lock by calling the API endpoint `POST /appointment/:id/request-control`.
-2. **Check Only Admin Can Request Control**: The system checks if the user is an admin. If not, it returns an error.
-3. **Check Lock Exists**: The system checks if a lock exists for the appointment. If not, it returns an error.
-4. **Send To Owner Of Lock**: The system sends a request to the owner of the lock, asking them to release the lock via web socket. This websocket message send to the client with topic `request-control` this placed at file `use-appointment-socket.ts` in NextJS frontend.
-5. **Owner Accepts or Rejects**: The owner of the lock can accept or reject the request.
-6. **If Accepted**: If the owner accepts the request, it will hit the API endpoint `POST /appointment/:id/approve-request-control` to approve the request. The system will then update the lock to indicate that the user has control.
-7. **Send Notification**: The system sends a notification to the user who requested control, indicating that they have been granted control of the lock. It sends a websocket message with topic `request-control-approved` to the client.
-
-## **Force Release Workflow**:
-
-1. **User Requests Force Release**: A user requests a force release of an appointment lock by calling the API endpoint `POST /appointment/:id/force-release-lock-request`.
-2. **Check Only Admin Can Request Force Release**: The system checks if the user is an admin. If not, it returns an error.
-3. **Check Lock Exists**: The system checks if a lock exists for the appointment. If not, it returns an error.
-4. **Send To Owner Of Lock**: The system sends a request to the owner of the lock, asking them to release the lock via web socket. This websocket message send to the client with topic `force-release-lock-request` this placed at file `use-appointment-socket.ts` in NextJS frontend.
-5. **Owner Accepts or Rejects**: The owner of the lock can accept or reject the request.
-6. **If Accepted**: If the owner accepts the request, it will hit the API endpoint `POST /appointment/:id/force-release-lock-approve` to approve the request. The system will then release the lock.
-7. **Send Notification**: The system sends a notification to the user who requested force release, indicating that the lock has been released. It sends a websocket message with topic `force-release-lock-approved` to the client.
 
 ## Running the Backend System Locally
 ### Prerequisites
