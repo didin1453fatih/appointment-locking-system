@@ -11,16 +11,37 @@ export class User {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
+    @Column(
+        {
+            type: 'varchar',
+            length: 100,
+            nullable: false
+        }
+    )
     name: string;
 
-    @Column()
+    @Column(
+        {
+            type: 'varchar',
+            length: 100,
+            nullable: false
+        }
+    )
     email: string;
 
-    @Column()
+    @Column(
+        {
+            type: 'varchar',
+            length: 255,
+            nullable: false
+        }
+    )
     password: string;
 
-    @Column({ default: false })
+    @Column({
+        type: 'boolean',
+        default: false
+    })
     isAdmin: boolean;
 
     @CreateDateColumn()
@@ -33,5 +54,5 @@ export class User {
     requestControlAppointmentLocks: AppointmentLock[];
 
     @OneToMany(() => AppointmentLock, appointmentLock => appointmentLock.user)
-    appointmentLocks: AppointmentLock[];    
+    appointmentLocks: AppointmentLock[];
 }

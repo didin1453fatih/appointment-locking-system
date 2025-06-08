@@ -9,18 +9,29 @@ export class Appointment {
     @Column()
     title: string;
 
-    @Column()
+    @Column({
+        type:'varchar',
+        length: 255,
+        nullable: false
+    })
     patientName: string;
 
     @Column({
-        type: 'date'
+        type: 'date',
+        nullable: false,
     })
     datebirth: Date;
 
-    @Column()
+    @Column({
+        type: 'enum',
+        enum: ['male', 'female'],
+        nullable: false
+    })
     gender: string;
 
     @Column({
+        type: 'varchar',
+        length: 15,
         nullable: true,
     })
     phone: string;
@@ -31,26 +42,42 @@ export class Appointment {
     })
     address: string;
 
-    @Column({ nullable: true })
+    @Column({ 
+        type: 'varchar',
+        length: 255,
+        nullable: true
+    })
     doctorName: string;
 
-    @Column({ nullable: true })
+    @Column({
+        type: 'text',
+        nullable: true
+    })
     note: string;
 
-    @Column({ nullable: true })
+    @Column({
+        type: 'text',
+        nullable: true
+    })
     description: string;
 
     @Column({
+        nullable: false,
         type: 'timestamp'
     })
     startTime: Date;
 
     @Column({
+        nullable: false,
         type: 'timestamp'
     })
     endTime: Date;
 
-    @Column({ default: 1 })
+    @Column({ 
+        type: 'int',
+        nullable: false,
+        default: 1
+    })
     version: number;
 
     @CreateDateColumn()

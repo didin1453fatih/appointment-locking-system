@@ -1,8 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, OneToOne, JoinColumn, ManyToOne, Index } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, OneToOne, JoinColumn, ManyToOne, Index, In } from 'typeorm';
 import { Appointment } from './appointment.entity';
-import { User } from '../../users/entities/user.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Entity('appointment_locks')
+@Index('appointment_lock_user_unique', ['appointmentId'], { unique: true })
 @Index('appointment_lock_request_control_unique', ['requestControlByUserId', 'appointmentId'], { unique: true })
 @Index('appointment_lock_request_force_release_unique', ['requestForceReleaseByUserId', 'appointmentId'], { unique: true })
 export class AppointmentLock {
@@ -10,8 +11,7 @@ export class AppointmentLock {
   id: string;
 
   @Column({
-    type: 'uuid',
-    unique: true
+    type: 'uuid'
   })
   appointmentId: string;
 

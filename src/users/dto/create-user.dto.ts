@@ -13,7 +13,7 @@ export class CreateUserDto {
     @IsEmail()
     @ApiProperty({
         type: String,
-        example: 'budi@example.com'
+        example: 'admin@example.com'
     })
     email: string;
 
@@ -22,7 +22,7 @@ export class CreateUserDto {
     @MinLength(6)
     @ApiProperty({
         type: String,
-        example: 'password123'
+        example: '123123'
     })
     password: string;
 
