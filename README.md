@@ -131,7 +131,7 @@ This project also support running using docker-compose for simplified setup and 
    ```bash
    docker-compose up --build
    ```
-3. **Access the Application**: Open your browser and go to `http://localhost:3000` for the frontend and `http://localhost:3000/docs` for the backend API documentation.
+3. **Access the Application**: Open your browser and go to http://localhost:3000 for the frontend and http://localhost:3000/docs for the backend API documentation.
 
 ## Database Documentation
 
