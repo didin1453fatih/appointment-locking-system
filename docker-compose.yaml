@@ -9,7 +9,7 @@ services:
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=postgresP@s1
+      - DATABASE_PASSWORD=postgres
       - DATABASE_NAME=appointments
       - JWT_SECRET=change_this_to_a_secure_secret_in_production
       - NODE_ENV=production
@@ -20,7 +20,7 @@ services:
     ports:
       - "0.0.0.0:54322:5432"
     environment:
-      - POSTGRES_PASSWORD=postgresP@s1
+      - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_DB=appointments
       - POSTGRES_HOST_AUTH_METHOD=md5
