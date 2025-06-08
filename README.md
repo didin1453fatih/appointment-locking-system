@@ -88,7 +88,7 @@ I add capability in this backend for development will be easy and fast. I add fe
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/appointment-locking-system.git
+   git clone https://github.com/didin1453fatih/appointment-locking-system.git
    cd appointment-locking-system
    ```
 2. **Install Dependencies**:
@@ -124,7 +124,7 @@ This project also support running using docker-compose for simplified setup and 
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/appointment-locking-system.git
+   git clone https://github.com/didin1453fatih/appointment-locking-system.git
    cd appointment-locking-system
    ```
 2. **Docker Compose Up**:
