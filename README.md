@@ -10,7 +10,8 @@ I Use ReactJs With NextJS for the frontend framework.
 
 **Why must NextJS?** Because i this is Mature reactjs framework. If i used reactjs i need implement how to deploy this appllication, how to handle routing and how to organize the codebase. NextJS provide all of this feature out of the box. When i need to deploy, i just connect this application to vercel and it will automatically deploy the application.
 
-For Internal admin application, mostly i used client side rendering with export static HTML. Every js and css file is unique in every build. This allow to add cache control via header response. This great way to prevent unnecessary download. I think this strategy is like application in windows desktop era at 2009s. All of UI installed using .exe and data communication using database query connection.
+For admin application, mostly i used client side rendering. This technique is export project to static HTML for serve at static file server. Every js and css file is unique in every build. This allow to add cache control via header response. This great way to prevent unnecessary download. In some case i add 1 year for expiration cache control.
+I think this strategy is like application in windows desktop era at 2009s. All of UI installed using .exe and data communication using database query connection.
 
 ## Stack
 - **ReactJS**
