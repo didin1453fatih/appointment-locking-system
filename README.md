@@ -2,79 +2,14 @@
 
 ## The System
 
+![Appointment UI](./appointment-ui.png)
+
 This system appointment locking system build with sperate backend and frontend. Backend build with NestJS and Frontend build with ReactJS with NextJS. For running the system locally, you need to run both backend and frontend servers. In below section, I will explain how to run the system locally.
 
-## Frontend
+## The Frontend
+For Comperhensive frontend documentation, please refer to the https://github.com/didin1453fatih/appointment-locking-system-fe
 
-![Appointment UI](./appointment-ui.png)
-I Use ReactJs With NextJS for the frontend framework.
-
-**Why must NextJS?** Because i this is Mature reactjs framework. If i used reactjs i need implement how to deploy this appllication, how to handle routing and how to organize the codebase. NextJS provide all of this feature out of the box. When i need to deploy, i just connect this application to vercel and it will automatically deploy the application.
-
-For admin application, mostly i used client side rendering. This technique is export project to static HTML for serve at static file server. Every js and css file is unique in every build. This allow to add cache control via header response. This great way to prevent unnecessary download. In some case i add 1 year for expiration cache control.
-I think this strategy is like application in windows desktop era at 2009s. All of UI installed using .exe and data communication using database query connection.
-
-## Stack
-
-- **ReactJS**
-- **NextJS**
-- **Redux Toolkit**
-- **Shadcn UI**
-- **React Big Calendar**
-- **Socket.io**
-- **Axios**
-- **Lodash**
-- **Tailwind CSS**
-- **Lucide Icon**
-
-## High Light Features
-
-I try to create a balance between simplicity, functionality and beautiful user experience. I add feature like:
-
-- **Agenda with calendar view**: For speedup development i use `react-big-calendar` for the agenda with calendar view. This allows users to see appointments in a calendar format, making it easy to navigate and manage appointments.
-- **Customize react big calendar with css**: I customize the `react-big-calendar` with CSS to match the design and user experience of the application. This includes styling the calendar, appointments, and other UI elements to create a cohesive look and feel.
-- **Realtime Update Appointments with latest database**: I use Socket.io to receive real-time updates from the backend. This allows the frontend to automatically update the appointment list and calendar view when changes occur, ensuring that users always see the latest data without needing to refresh the page.
-- **Realtime Update Action Button based on appointment lock**: I implement real-time updates for action buttons based on the appointment lock status. This prevent user do wrong action on appointment. With UI we prevent wrong action.
-- **Journey for update appointment**: I implement a journey for updating appointments. I add one step before user can update the appointment, this step is view the appointment details. This allows users to review the appointment information before making any changes. This is reduce locking conflicts and ensure that users are aware of the current state of the appointment. If this appointment is locked, user will see a message that the appointment is locked with **counting down timer** until the lock expires.
-- **Admin Role Verification**: I implement an admin role checking to ensure that only admin users can perform certain actions, such as force releasing locks and requesting control of appointments.
-- **Request / Approve Control of Appointment Lock**: I implement a feature that allows users to request control of an appointment lock. If the user is not the owner of the lock, they can request control, and the owner can approve or cancel the request. This is done via web socket for real-time updates.
-- **Handle Tab/Window Close**: I implement a feature that handles the tab/window close event. I use combination of beforeunload and unload event in edit appointment page to prevent users from accidentally losing changes and to ensure there are no lock without user knowledge. If user confirm to close the tab/window, it will release the lock.
-- **Broadcast Collaborative Cursor**: I implement a collaborative cursor feature that broadcasts the user's cursor position to other users in real-time. This allows users to see where others are currently working on the appointment, enhancing collaboration and reducing conflicts.
-- **Cursor use aceternity animation**: I implement a cursor animation with aceternity animation.
-- **Display Other User Pointers**: I implement a feature that displays other users' pointers in real-time.
-- **Throttle Cursor**: I implement a throttling mechanism to limit the frequency of cursor position update. I use loadash throttle function to ensure that the cursor position is updated at a reasonable interval, reducing the load on the server and improving performance.
-
-## Running the Frontend System Locally
-
-### Prerequisites
-
-- Node.js (v20 or higher)
-- npm
-
-### Steps to Run the Frontend
-
-1. **Clone the Repository**:
-   ```bash
-   git clone   https://github.com/didin1453fatih/appointment-locking-system-fe
-    cd appointment-locking-system-fe
-   ```
-2. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
-3. **Copy .env.example to .env**:
-   Create a `.env` file in the root directory of the project by copying the example file:
-   ```bash
-   cp .env.example .env
-   ```
-4. **Configure Backend URL**: Update the `.env` file with the URL of your backend server.
-5. **Start the Application**:
-   ```bash
-   npm run dev
-   ```
-6. **Access the Application**: Open your browser and go to `http://localhost:3000` to access the application.
-
-## Backend
+## The Backend
 
 I used NestJS for the backend framework. Why i choost nestJS compared with expressJS ? Because i need speed up development below one week. ExpressJS minimalist, but this need many of configuration compared with NestJS. With NestJS there are many helper and decoration for speed up pre development config. When I develop app, there are required tools for my perfectionist mindset:
 
@@ -85,43 +20,62 @@ I used NestJS for the backend framework. Why i choost nestJS compared with expre
 5. Authentication and Authorization
 6. Consistent Error Handling And Response
 7. Unit Testing
-   When i used expressJS, i can understand that i need to implement all of this tools manually. And i understand about depedency and scurity. For enterprise application i choose ExpressJS. But for this case i choose NestJS.
 
-## High Light Features
+**When i used expressJS ?** I will be use express if this system is longterm project, internal application with low maintenance, high security. I use express because, I build anything by manual and i will install trusted depedency. It make me understand about depedency and scurity. NestJs is great tool and have many features, but it has many dependency and it is not easy to understand. And versioning increasing faster than expressJS. I will use NestJS if this system is short term project with high maintenance.
+
+## Features
 
 I add capability in this backend for development will be easy and fast. I add feature like:
 
 - **Rest API Documentation**: I use Swagger for API documentation. It will reflect the current state of codebase and provide a user-friendly interface for testing endpoints.
 - **Custom CLI Database Migrations**: I use TypeORM for database migrations. It allows you to manage your database schema changes in a structured way. I put at `/scripts/` directory for generate migration based on current models.
 - **Database Locking**: I implement a locking mechanism at level database using add unique constrain of `appointmentId` in the `AppointmentLock` table. This ensures that only one user can hold a lock on an appointment at a time, preventing conflicts and ensuring data integrity.
-- **Optimistic Locking**: I use optimistic locking with a `version` field in the `Appointment` table. This allows multiple users to read the same appointment data without conflicts, while still preventing overwrites when updates are made.
+- **Optimistic Locking**: I use optimistic locking with a `version` field in the `Appointment` table. This allows multiple users to read the same appointment data without conflicts, while still preventing overwrites when updates are made. I add this at `acquireLock` and `update` appointment endpoint in file `appointment.service.ts`.
 - **Backend Logic Locking**: I implement a locking mechanism at the backend level using a `appointment.service.ts` file. This file contains the logic for handling appointment locks, including acquiring and releasing locks, and managing user requests for control of locks.
 - **Locking Unit Tests**: I write comprehensive test cases at `appointment.service.spec.ts` for the locking mechanism to ensure its reliability and correctness. These tests cover various scenarios, including acquiring locks, releasing locks, and handling conflicts.
 - **Cron Job**: I implement a cron job to automatically release locks that have expired. If Cron job is not running, it still works because I add a logic in the `appointment.service.ts` if lock is expired, it will automatically release the lock when user try to acquire the lock.
-- **Web Socket**: I use Socket.io for broadcast and sending real-time updates to the frontend. This allows the frontend to receive updates about appointment locks and changes in real-time, enhancing user experience.
+- **Web Socket**: I use Socket.io for broadcast and sending real-time updates to the frontend. This allows the frontend to receive updates about appointment locks and changes in real-time, enhancing user experience. In backend, I implement this at `appointment.gateway.ts` file.
 - **Rate Limiting Locking**: I implement rate limiting to prevent abuse of the locking mechanism. This rate limit protect at API `appointment/:id/acquire-lock/:version`.
 - **Admin Role Verification**: I implement an admin role verification to ensure that only authorized users can perform certain actions, such as force releasing locks and request control of appointments.
+- **DTO Validation**: I use class-validator to validate incoming requests and ensure that the data is in the correct format before processing it. This helps prevent errors and ensures data integrity. Example at `create-appointment.dto.ts`.
+- **TypeORM for Sanitize Query**: I use TypeORM to sanitize queries and prevent SQL injection attacks. 
+
+
+## Realtime appointment data synchronization
+1. **Web Socket Connection**: The frontend establishes a WebSocket connection to the backend using Socket.io.
+2. **Send Initial Data From Server when Connection Created**: When the WebSocket connection is established, the backend sends the initial appointment data to the frontend.
+3. **Listen for Updates**: The frontend listens for updates topics at hook `use-appointment-socket.ts` in Next.js such as:
+- `init-appointments`: This topic is used to send the initial appointment data when the WebSocket connection is established.
+- `update-appointments`: This topic is used to send the frontend when an appointment is updated.
+- `request-control`: This topic is used to notify the owner of the lock when a admin requests control of an appointment lock.
+- `request-control-approved`: This topic is used to notify the user who requested control of the lock when their request is approved.
+- `force-release-lock-request`: This topic is used to notify the owner of the lock when a admin requests force release of an appointment lock.
+- `force-release-lock-approved`: This topic is used to notify the user who requested force release of the lock when their request is approved.
+4. **Update UI**: When the frontend receives an update, it updates the UI accordingly, ensuring that the user sees the most current appointment data.
+
+
 
 ## **Request Control Workflow**:
 
 1. **User Requests Control**: A user requests control of an appointment lock by calling the API endpoint `POST /appointment/:id/request-control`.
 2. **Check Only Admin Can Request Control**: The system checks if the user is an admin. If not, it returns an error.
 3. **Check Lock Exists**: The system checks if a lock exists for the appointment. If not, it returns an error.
-4. **Send To Owner Of Lock**: The system sends a request to the owner of the lock, asking them to release the lock via web socket.
+4. **Send To Owner Of Lock**: The system sends a request to the owner of the lock, asking them to release the lock via web socket. This websocket message send to the client with topic `request-control` this placed at file `use-appointment-socket.ts` in NextJS frontend.
 5. **Owner Accepts or Rejects**: The owner of the lock can accept or reject the request.
 6. **If Accepted**: If the owner accepts the request, it will hit the API endpoint `POST /appointment/:id/approve-request-control` to approve the request. The system will then update the lock to indicate that the user has control.
+7. **Send Notification**: The system sends a notification to the user who requested control, indicating that they have been granted control of the lock. It sends a websocket message with topic `request-control-approved` to the client.
 
 ## **Force Release Workflow**:
 
 1. **User Requests Force Release**: A user requests a force release of an appointment lock by calling the API endpoint `POST /appointment/:id/force-release-lock-request`.
 2. **Check Only Admin Can Request Force Release**: The system checks if the user is an admin. If not, it returns an error.
 3. **Check Lock Exists**: The system checks if a lock exists for the appointment. If not, it returns an error.
-4. **Send To Owner Of Lock**: The system sends a request to the owner of the lock, asking them to release the lock via web socket.
+4. **Send To Owner Of Lock**: The system sends a request to the owner of the lock, asking them to release the lock via web socket. This websocket message send to the client with topic `force-release-lock-request` this placed at file `use-appointment-socket.ts` in NextJS frontend.
 5. **Owner Accepts or Rejects**: The owner of the lock can accept or reject the request.
 6. **If Accepted**: If the owner accepts the request, it will hit the API endpoint `POST /appointment/:id/force-release-lock-approve` to approve the request. The system will then release the lock.
+7. **Send Notification**: The system sends a notification to the user who requested force release, indicating that the lock has been released. It sends a websocket message with topic `force-release-lock-approved` to the client.
 
 ## Running the Backend System Locally
-
 ### Prerequisites
 
 - Node.js (v20 or higher)
@@ -158,7 +112,7 @@ I add capability in this backend for development will be easy and fast. I add fe
 
 ## Running using docker-compose
 
-This project also support running using docker-compose.
+This project also support running using docker-compose for simplified setup and running backend.
 
 ### Prerequisites
 
