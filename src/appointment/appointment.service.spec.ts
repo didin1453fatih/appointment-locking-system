@@ -148,10 +148,6 @@ describe('AppointmentService', () => {
             // Simulate a delay to ensure the lock is renewed
             await new Promise(resolve => setTimeout(resolve, 1000));
             const result = await service.acquireLock(appointmentId, userId, userInfo, version);
-
-            console.log('existingLock.expiresAt', existingLock.expiresAt);
-            console.log('result.expiresAt', result.expiresAt);
-            console.log('originalExpiresAt', originalExpiresAt);
             expect(result.expiresAt).toBeDefined();
             expect(result.expiresAt.getTime()).toBeGreaterThan(originalExpiresAt.getTime());
             expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();

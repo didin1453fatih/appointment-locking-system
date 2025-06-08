@@ -259,8 +259,6 @@ export class AppointmentService {
         where: { appointmentId }
       });
 
-      console.log('Existing lock:', existingLock);
-
       if (!existingLock) {
         throw new NotFoundException(`No lock found for appointment with ID ${appointmentId}`);
       }

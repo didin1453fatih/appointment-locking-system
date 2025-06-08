@@ -65,12 +65,9 @@ export class AppointmentsGateway implements OnGatewayConnection, OnGatewayDiscon
       };
     });
     client.emit('init-appointments', updatedAppointments);
-    console.log('Client connected:', client.id);
   }
 
   handleDisconnect(@ConnectedSocket() client: Socket) {
-    console.log('Client disconnected', client.id)
-
     // Remove the disconnected user from the map
     for (const [key, value] of this.connectedUsers.entries()) {
       if (value.socketId === client.id) {
@@ -86,11 +83,6 @@ export class AppointmentsGateway implements OnGatewayConnection, OnGatewayDiscon
     });
   }
 
-  @SubscribeMessage('newMessage')
-  handleNewMessage(@MessageBody() message: any): void {
-    console.log('New message:', message);
-    this.server.emit('message', "message received:asdfasdfsd " + message);
-  }
 
   @SubscribeMessage('cursor-position')
   handleCursorPosition(@MessageBody() data: { userId: string, position: { x: number, y: number } }): void {
@@ -98,7 +90,6 @@ export class AppointmentsGateway implements OnGatewayConnection, OnGatewayDiscon
   }
 
   broadcastUpdateAppointment(appointment: any): void {
-    console.log('Broadcasting new appointment:', appointment);
     const appointmentToSend = {
       ...appointment,
     };
@@ -106,11 +97,9 @@ export class AppointmentsGateway implements OnGatewayConnection, OnGatewayDiscon
   }
 
   broadcastLockRemoved(appointmentId: string): void {
-    console.log('Broadcasting lock removed for appointment:', appointmentId);
     this.server.emit('lock-removed', { appointmentId });
   }
   broadcastLockAdded(appointmentId: string, lockAcquired: any): void {
-    console.log('Broadcasting lock added for appointment:', appointmentId, 'by user:', lockAcquired.userInfo);
     this.server.emit('lock-added', { appointmentId, lockAcquired });
   }
 
