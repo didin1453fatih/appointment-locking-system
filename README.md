@@ -4,7 +4,17 @@
 This system appointment locking system build with sperate backend and frontend. Backend build with NestJS and Frontend build with ReactJS with NextJS. For running the system locally, you need to run both backend and frontend servers. In below section, I will explain how to run the system locally.
 
 ## Backend
-I used NestJS for the backend framework. It is a progressive Node.js framework for building efficient, reliable, and scalable server-side applications.
+I used NestJS for the backend framework. Why i choost nestJS compared with expressJS ? Because i need speed up development below one week. ExpressJS minimalist, but this need many of configuration compared with NestJS. With NestJS there are many helper and decoration for speed up pre development config. When I develop app, there are required tools for my perfectionist mindset:
+1. Database Migration
+2. ORM (Object Relational Mapping)
+3. API Documentation
+4. Validation Request (DTO)
+5. Authentication and Authorization
+6. Consistent Error Handling And Response
+7. Unit Testing
+When i used expressJS, i can understand that i need to implement all of this tools manually. And i understand about depedency and scurity. For enterprise application i choose ExpressJS. But for this case i choose NestJS.
+
+## High Light Features
 I add capability in this backend for development will be easy and fast. I add feature like:
 - **Rest API Documentation**: I use Swagger for API documentation. It will reflect the current state of codebase and provide a user-friendly interface for testing endpoints.
 - **Custom CLI Database Migrations**: I use TypeORM for database migrations. It allows you to manage your database schema changes in a structured way. I put at `/scripts/` directory for generate migration based on current models.
@@ -117,8 +127,16 @@ I add capability in this backend for development will be easy and fast. I add fe
 
 
 
-## Frontend
-I Use ReactJs With NextJS for the frontend framework. This make it easy develop and deploy the application. I try to create a balance between simplicity, functionality and beautiful user experience. I add feature like:
+# Frontend
+![Appointment UI](./appointment-ui.png)
+I Use ReactJs With NextJS for the frontend framework. 
+
+**Why must NextJS?** Because i this is Mature reactjs framework. If i used reactjs i need implement how to deploy this appllication, how to handle routing and how to organize the codebase. NextJS provide all of this feature out of the box. When i need to deploy, i just connect this application to vercel and it will automatically deploy the application.
+
+For Internal admin application, mostly i used client side rendering with export static HTML. Every js and css file is unique in every build. This allow to add cache control via header response. This great way to prevent unnecessary download. I think this strategy is like application in windows desktop era at 2009s. All of UI installed using .exe and data communication using database query connection.
+
+## High Light Features
+I try to create a balance between simplicity, functionality and beautiful user experience. I add feature like:
 - **Agenda with calendar view**: For speedup development i use `react-big-calendar` for the agenda with calendar view. This allows users to see appointments in a calendar format, making it easy to navigate and manage appointments.
 - **Customize react big calendar with css**: I customize the `react-big-calendar` with CSS to match the design and user experience of the application. This includes styling the calendar, appointments, and other UI elements to create a cohesive look and feel.
 - **Realtime Update Appointments with latest database**: I use Socket.io to receive real-time updates from the backend. This allows the frontend to automatically update the appointment list and calendar view when changes occur, ensuring that users always see the latest data without needing to refresh the page.
@@ -129,5 +147,31 @@ I Use ReactJs With NextJS for the frontend framework. This make it easy develop 
 - **Handle Tab/Window Close**: I implement a feature that handles the tab/window close event. I use combination of beforeunload and unload event in edit appointment page to prevent users from accidentally losing changes and to ensure there are no lock without user knowledge. If user confirm to close the tab/window, it will release the lock.
 - **Broadcast Collaborative Cursor**: I implement a collaborative cursor feature that broadcasts the user's cursor position to other users in real-time. This allows users to see where others are currently working on the appointment, enhancing collaboration and reducing conflicts.
 - **Cursor use aceternity animation**: I implement a cursor animation with aceternity animation.
+- **Display Other User Pointers**: I implement a feature that displays other users' pointers in real-time.
 - **Throttle Cursor**: I implement a throttling mechanism to limit the frequency of cursor position update. I use loadash throttle function to ensure that the cursor position is updated at a reasonable interval, reducing the load on the server and improving performance.
 
+## Running the Frontend System Locally
+### Prerequisites
+- Node.js (v20 or higher)
+- npm
+### Steps to Run the Frontend
+1. **Clone the Repository**:
+   ```bash
+   git clone   https://github.com/didin1453fatih/appointment-locking-system-fe
+    cd appointment-locking-system-fe
+    ```
+2. **Install Dependencies**:
+    ```bash
+   npm install
+   ```
+3. **Copy .env.example to .env**:
+    Create a `.env` file in the root directory of the project by copying the example file:
+   ```bash
+   cp .env.example .env
+   ```
+4. **Configure Backend URL**: Update the `.env` file with the URL of your backend server.
+5. **Start the Application**:
+   ```bash
+   npm run dev
+   ```
+6. **Access the Application**: Open your browser and go to `http://localhost:3000` to access the application.   
