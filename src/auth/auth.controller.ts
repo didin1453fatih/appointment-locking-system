@@ -7,6 +7,7 @@ import {
     HttpStatus,
     Post,
     Request,
+    UnauthorizedException,
     UseGuards
 } from '@nestjs/common';
 import { AuthGuard } from './auth.guard';
@@ -41,6 +42,9 @@ export class AuthController {
 
         const user = await this.userRepository.findOne({ where: { id: req.user.id } });
 
+        if (!user) {
+            throw new UnauthorizedException('User not found');
+        }
         return user;
     }
 }
